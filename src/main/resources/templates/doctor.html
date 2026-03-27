@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>AyurSutra | Practitioner Workspace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        :root {
+            --doctor-blue: #34495e;
+            --primary-sage: #7C9082;
+            --clinical-bg: #f0f2f5;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--clinical-bg); margin: 0; display: flex; flex-direction: column; }
+        
+        .navbar { background-color: var(--doctor-blue); color: white; padding: 1rem 3%; display: flex; justify-content: space-between; align-items: center; }
+        
+        .workspace { display: grid; grid-template-columns: 300px 1fr 350px; gap: 20px; padding: 20px; height: calc(100vh - 80px); }
+
+        .panel { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow-y: auto; }
+        .panel h2 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--doctor-blue); border-bottom: 2px solid var(--primary-sage); padding-bottom: 10px; margin-top: 0; }
+
+        /* Queue Styling */
+        .patient-item { padding: 15px; border-bottom: 1px solid #eee; transition: background 0.3s; cursor: pointer; }
+        .patient-item:hover { background: #f9f9f9; }
+        .patient-item.active { border-left: 4px solid var(--primary-sage); background: #f1f4f0; }
+
+        /* Form Styling */
+        input, textarea, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; }
+        .btn-action { background: var(--doctor-blue); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: 600; }
+        .btn-action:hover { opacity: 0.9; }
+
+        .dosha-tag { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <h1 style="font-family: 'Playfair Display', serif; margin: 0;">AyurSutra <span style="font-weight: 300; font-size: 1rem;">| Practitioner Workspace</span></h1>
+        <div style="display: flex; align-items: center;">
+            <span style="margin-right: 20px;">Dr. Ayurveda (MD)</span>
+            <a href="/login" style="color: white; text-decoration: none; border: 1px solid white; padding: 5px 15px; border-radius: 5px; font-size: 0.8rem;">Logout</a>
+        </div>
+    </nav>
+
+    <div class="workspace">
+        
+        <aside class="panel">
+            <h2>Today's Queue</h2>
+            <div class="patient-item active">
+                <div style="font-weight: 600;">Aarav Sharma</div>
+                <div style="font-size: 0.8rem; color: #666;">Waiting: 15 mins | <span class="dosha-tag">Vata</span></div>
+            </div>
+            <div class="patient-item">
+                <div style="font-weight: 600;">Leena A.</div>
+                <div style="font-size: 0.8rem; color: #666;">Scheduled: 10:30 AM | <span class="dosha-tag">Pitta</span></div>
+            </div>
+        </aside>
+
+        <main class="panel">
+            <h2>Active Consultation</h2>
+            <div style="background: #fdfdfd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eee;">
+                <p><strong>Chief Complaint:</strong> Insomnia and digestive heat.</p>
+                <p><strong>Pulse Diagnosis:</strong> Fast, wiry (Pitta-Vata imbalance).</p>
+            </div>
+
+            <h3>Prescribe Treatment</h3>
+            <form onsubmit="alert('Prescription saved and sent to patient portal!'); return false;">
+                <label>Medicine Name</label>
+                <input type="text" placeholder="e.g., Brahmi Ghrita" required>
+                
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label>Dosage</label>
+                        <input type="text" placeholder="e.g., 2 tablets">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Frequency</label>
+                        <select>
+                            <option>Twice Daily (After food)</option>
+                            <option>Once Daily (Before bed)</option>
+                            <option>Three times daily</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>Special Instructions (Anupana)</label>
+                <textarea rows="3" placeholder="Take with warm milk or honey..."></textarea>
+                
+                <button type="submit" class="btn-action">Finalize & Issue Prescription</button>
+            </form>
+        </main>
+
+        <aside class="panel">
+            <h2>Patient Snapshot</h2>
+            <p><strong>Full Name:</strong> Aarav Sharma</p>
+            <p><strong>Age/Sex:</strong> 28 / Male</p>
+            <p><strong>ABHA ID:</strong> 12-3456-7890</p>
+            <hr style="border: 0; border-top: 1px solid #eee;">
+            <p><strong>Primary Dosha:</strong> <span class="dosha-tag">Vata</span></p>
+            <p><strong>Agni Strength:</strong> <span style="color: #c0392b; font-weight: 600;">Manda (Low)</span></p>
+            <p><strong>Prakriti:</strong> Ectomorphic, anxious</p>
+            <button class="btn-action" style="background: var(--primary-sage); margin-top: 20px;" onclick="alert('Viewing full medical history...')">View Full History</button>
+        </aside>
+
+    </div>
+
+</body>
+</html>
