@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>AyurSutra | Patient Wellness Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        :root {
+            --primary-sage: #7C9082;
+            --dark-forest: #2d3e30;
+            --accent-terra: #C87941;
+            --soft-cream: #F9F6F0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--soft-cream);
+            margin: 0;
+        }
+
+        /* 1. Navigation Menu Feature */
+        .navbar {
+            background-color: var(--dark-forest);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .nav-brand { font-family: 'Playfair Display', serif; font-size: 1.5rem; }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--primary-sage); }
+
+        .logout-btn {
+            background: var(--accent-terra);
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white !important;
+        }
+
+        /* Dashboard Grid Layout */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--primary-sage);
+        }
+
+        .card h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--dark-forest);
+            margin-top: 0;
+            font-size: 1.3rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* 2. Book a Session Styles */
+        .booking-form select, .booking-form input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        .btn-full {
+            width: 100%;
+            background: var(--primary-sage);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* 3. Daily Tip Feature Styling */
+        .tip-box {
+            background: #f1f4f0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent-terra);
+            font-style: italic;
+            color: #444;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-brand">AyurSutra</div>
+        <div class="nav-links">
+            <a href="#">My Doctor</a>
+            <a href="#">Appointments</a>
+            <a href="/login" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        
+        <div class="card">
+            <h2>Personal Profile</h2>
+            <p>Welcome back, <strong th:text="${patient.name ?: 'Valued Patient'}">User</strong></p>
+            <p>Primary Dosha: <span class="status-badge" th:text="${patient.primaryDosha ?: 'Pitta'}">Pitta</span></p>
+            <p>Agni: <strong th:text="${patient.agniStrength ?: 'Tikshna'}">High</strong></p>
+            <button class="btn-full" onclick="runPrakritiQuiz()" style="background: var(--dark-forest);">Retake Prakriti Quiz</button>
+        </div>
+
+        <div class="card">
+            <h2>Book Therapy Session</h2>
+            <form class="booking-form" onsubmit="handleBooking(event)">
+                <select required>
+                    <option value="">Choose Therapy Type...</option>
+                    <option value="abhyanga">Abhyanga (Herbal Massage)</option>
+                    <option value="shirodhara">Shirodhara (Oil Pouring)</option>
+                    <option value="nasya">Nasya (Nasal Cleansing)</option>
+                </select>
+                <input type="date" required>
+                <button type="submit" class="btn-full">Request Appointment</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Active Prescriptions</h2>
+            <p><strong>Medicine:</strong> Triphala Churna</p>
+            <p><strong>Dosage:</strong> 1 tsp with warm water</p>
+            <p><strong>Frequency:</strong> Nightly before sleep</p>
+            <hr style="border: 0; border-top: 1px solid #eee;">
+            <p style="color: var(--accent-terra); font-size: 0.9rem;">Next Follow-up: March 25th, 2026</p>
+        </div>
+
+        <div class="card">
+            <h2>Daily Dinacharya Tip</h2>
+            <div class="tip-box">
+                "Start your morning with copper-charged water and gentle Surya Namaskar to balance your inner Agni today."
+            </div>
+            <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">Tip generated based on your Pitta profile.</p>
+        </div>
+
+    </div>
+
+    <script>
+        function runPrakritiQuiz() {
+            let step1 = confirm("Question 1: Do you have a small frame and find it hard to gain weight?");
+            let step2 = confirm("Question 2: Is your skin generally dry or prone to cracking in cold weather?");
+            
+            if (step1 && step2) {
+                alert("Assessment Complete: Your current traits strongly indicate a VATA constitution. Your dashboard will update shortly.");
+            } else {
+                alert("Assessment Complete: Your traits indicate a PITTA-KAPHA balance. Consult your practitioner for a full diet chart.");
+            }
+        }
+
+        function handleBooking(e) {
+            e.preventDefault();
+            alert("Success! Your therapy request has been logged. Our coordinator will contact you to confirm the time slot.");
+        }
+    </script>
+
+</body>
+</html>
