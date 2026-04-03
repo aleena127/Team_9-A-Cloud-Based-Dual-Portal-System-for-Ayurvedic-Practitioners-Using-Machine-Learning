@@ -3,195 +3,672 @@
 <head>
     <meta charset="UTF-8">
     <title>AyurSutra | Patient Wellness Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sage:   { DEFAULT: '#7C9082', light: '#a3b5a8', dark: '#5a6b60' },
+                        terra:  { DEFAULT: '#C87941', light: '#d9976a', dark: '#a0602f' },
+                        forest: { DEFAULT: '#2d3e30', light: '#3d5240', dark: '#1e2b21' },
+                        cream:  { DEFAULT: '#F9F6F0', dark: '#ede9e1' },
+                    },
+                    fontFamily: {
+                        serif: ['"DM Serif Display"', 'serif'],
+                        sans:  ['"DM Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
     <style>
-        :root {
-            --primary-sage: #7C9082;
-            --dark-forest: #2d3e30;
-            --accent-terra: #C87941;
-            --soft-cream: #F9F6F0;
+        body { font-family: 'DM Sans', sans-serif; }
+
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: inline; }
+        .htmx-request.htmx-indicator { display: inline; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .card-anim { animation: fadeUp 0.4s ease both; }
+        .card-anim:nth-child(1) { animation-delay: 0.05s; }
+        .card-anim:nth-child(2) { animation-delay: 0.12s; }
+        .card-anim:nth-child(3) { animation-delay: 0.19s; }
+        .card-anim:nth-child(4) { animation-delay: 0.26s; }
+        .card-anim:nth-child(5) { animation-delay: 0.33s; }
+
+        .tip-border {
+            border-left: 4px solid #C87941;
+            border-radius: 0;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--soft-cream);
-            margin: 0;
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50%       { transform: scale(1.3); opacity: 0.7; }
         }
+        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
 
-        /* 1. Navigation Menu Feature */
-        .navbar {
-            background-color: var(--dark-forest);
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
 
-        .nav-brand { font-family: 'Playfair Display', serif; font-size: 1.5rem; }
-        
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            margin-left: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: 0.3s;
-        }
-
-        .nav-links a:hover { color: var(--primary-sage); }
-
-        .logout-btn {
-            background: var(--accent-terra);
-            padding: 8px 18px;
-            border-radius: 20px;
-            text-decoration: none;
-            color: white !important;
-        }
-
-        /* Dashboard Grid Layout */
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 25px;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            border-top: 4px solid var(--primary-sage);
-        }
-
-        .card h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--dark-forest);
-            margin-top: 0;
-            font-size: 1.3rem;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        /* 2. Book a Session Styles */
-        .booking-form select, .booking-form input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-family: inherit;
-        }
-
-        .btn-full {
-            width: 100%;
-            background: var(--primary-sage);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
-        /* 3. Daily Tip Feature Styling */
-        .tip-box {
-            background: #f1f4f0;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid var(--accent-terra);
-            font-style: italic;
-            color: #444;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #e8f5e9;
-            color: #2e7d32;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
+        .section-highlight {
+            box-shadow: 0 0 0 3px rgba(124,144,130,0.2);
+            transition: box-shadow 0.4s ease;
         }
     </style>
 </head>
-<body>
+<body class="bg-cream font-sans min-h-screen">
 
-    <nav class="navbar">
-        <div class="nav-brand">AyurSutra</div>
-        <div class="nav-links">
-            <a href="#">My Doctor</a>
-            <a href="#">Appointments</a>
-            <a href="/login" class="logout-btn">Logout</a>
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <nav class="bg-forest text-white px-6 md:px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-40">
+        <div class="flex items-center gap-3">
+            <span class="w-2 h-2 rounded-full bg-green-400 pulse-dot"></span>
+            <span class="font-serif text-2xl tracking-wide">AyurSutra</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm font-medium">
+            <a href="javascript:void(0)" onclick="goToDoctorSection()" class="hidden md:block text-white/70 hover:text-white transition-colors duration-200">My Doctor</a>
+            <a href="javascript:void(0)" onclick="goToAppointments()" class="hidden md:block text-white/70 hover:text-white transition-colors duration-200">Appointments</a>
+            <span class="hidden md:block text-white/40">|</span>
+            <span class="text-white/70 text-xs hidden md:block" th:text="${patient.name ?: 'Patient'}">Patient</span>
+            <a href="/login"
+               class="bg-terra hover:bg-terra-dark text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors duration-200">
+                Logout
+            </a>
         </div>
     </nav>
 
-    <div class="dashboard-container">
-        
-        <div class="card">
-            <h2>Personal Profile</h2>
-            <p>Welcome back, <strong th:text="${patient.name ?: 'Valued Patient'}">User</strong></p>
-            <p>Primary Dosha: <span class="status-badge" th:text="${patient.primaryDosha ?: 'Pitta'}">Pitta</span></p>
-            <p>Agni: <strong th:text="${patient.agniStrength ?: 'Tikshna'}">High</strong></p>
-            <button class="btn-full" onclick="runPrakritiQuiz()" style="background: var(--dark-forest);">Retake Prakriti Quiz</button>
-        </div>
+    <div class="bg-gradient-to-br from-forest to-forest-light text-white px-6 md:px-12 py-12 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-sage/10 rounded-full -translate-y-1/3 translate-x-1/4 pointer-events-none"></div>
+        <div class="absolute bottom-0 left-20 w-40 h-40 bg-terra/10 rounded-full translate-y-1/2 pointer-events-none"></div>
 
-        <div class="card">
-            <h2>Book Therapy Session</h2>
-            <form class="booking-form" onsubmit="handleBooking(event)">
-                <select required>
-                    <option value="">Choose Therapy Type...</option>
-                    <option value="abhyanga">Abhyanga (Herbal Massage)</option>
-                    <option value="shirodhara">Shirodhara (Oil Pouring)</option>
-                    <option value="nasya">Nasya (Nasal Cleansing)</option>
-                </select>
-                <input type="date" required>
-                <button type="submit" class="btn-full">Request Appointment</button>
-            </form>
-        </div>
+        <p class="text-white/60 text-sm mb-1 tracking-widest uppercase">Patient Portal</p>
+        <h1 class="font-serif text-4xl md:text-5xl mb-4"
+            th:text="'Namaste, ' + ${patient.name ?: 'Valued Patient'}">Namaste, Patient</h1>
 
-        <div class="card">
-            <h2>Active Prescriptions</h2>
-            <p><strong>Medicine:</strong> Triphala Churna</p>
-            <p><strong>Dosage:</strong> 1 tsp with warm water</p>
-            <p><strong>Frequency:</strong> Nightly before sleep</p>
-            <hr style="border: 0; border-top: 1px solid #eee;">
-            <p style="color: var(--accent-terra); font-size: 0.9rem;">Next Follow-up: March 25th, 2026</p>
+        <div class="flex flex-wrap gap-2 mt-2">
+            <span class="bg-white/15 backdrop-blur text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/10"
+                  th:text="'Dosha · ' + ${patient.primaryDosha ?: 'Pitta'}">Dosha · Pitta</span>
+            <span class="bg-white/15 backdrop-blur text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/10"
+                  th:text="'Agni · ' + ${patient.agniStrength ?: 'Tikshna'}">Agni · Tikshna</span>
+            <span class="bg-white/15 backdrop-blur text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/10"
+                  th:text="'ABHA · ' + ${patient.abhaId ?: 'Not linked'}">ABHA · Not linked</span>
         </div>
+    </div>
 
-        <div class="card">
-            <h2>Daily Dinacharya Tip</h2>
-            <div class="tip-box">
-                "Start your morning with copper-charged water and gentle Surya Namaskar to balance your inner Agni today."
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+        <div id="prakriti-card" class="card-anim bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                <h2 class="font-serif text-xl text-forest">Prakriti Profile</h2>
+                <span class="w-8 h-8 bg-sage/10 rounded-full flex items-center justify-center text-sage text-sm">✦</span>
             </div>
-            <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">Tip generated based on your Pitta profile.</p>
+
+            <div class="space-y-3 text-sm mb-5">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Primary Dosha</span>
+                    <span class="font-semibold text-forest bg-sage/10 text-sage-dark px-2 py-0.5 rounded-md text-xs"
+                          th:text="${patient.primaryDosha ?: 'Pitta'}">Pitta</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Agni Strength</span>
+                    <span class="font-semibold text-terra text-xs"
+                          th:text="${patient.agniStrength ?: 'Tikshna (High)'}">Tikshna (High)</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Constitution</span>
+                    <span class="font-medium text-gray-700 text-xs"
+                          th:text="${patient.prakriti ?: 'Pitta-Kapha'}">Pitta-Kapha</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">ABHA ID</span>
+                    <span class="font-mono text-gray-600 text-xs"
+                          th:text="${patient.abhaId ?: 'Not linked'}">Not linked</span>
+                </div>
+            </div>
+
+            <button th:attr="onclick=|runPrakritiQuiz(${patient.id})|"
+                    class="w-full bg-forest hover:bg-forest-light text-white text-sm font-semibold py-3 rounded-xl transition-colors duration-200">
+                Retake Prakriti Quiz
+            </button>
+        </div>
+
+        <div id="appointments-card" class="card-anim bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                <h2 class="font-serif text-xl text-forest">Book Therapy</h2>
+                <span class="w-8 h-8 bg-terra/10 rounded-full flex items-center justify-center text-terra text-sm">◈</span>
+            </div>
+
+            <form hx-post="/api/appointments/book"
+                  hx-target="#booking-result"
+                  hx-swap="innerHTML"
+                  hx-indicator="#book-spinner">
+
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Therapy Type</label>
+                <select name="therapyType"
+                        class="w-full border border-gray-200 rounded-xl p-3 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage/40 mb-4"
+                        required>
+                    <option value="">Choose therapy...</option>
+                    <option value="Abhyanga">Abhyanga (Herbal Massage)</option>
+                    <option value="Shirodhara">Shirodhara (Oil Pouring)</option>
+                    <option value="Nasya">Nasya (Nasal Cleansing)</option>
+                    <option value="Panchakarma">Panchakarma (Full Detox)</option>
+                    <option value="Basti">Basti (Herbal Enema)</option>
+                </select>
+
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Preferred Date</label>
+                <input type="date" name="scheduleDate"
+                       class="w-full border border-gray-200 rounded-xl p-3 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage/40 mb-4"
+                       required>
+
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Notes (optional)</label>
+                <textarea name="notes" rows="2"
+                          placeholder="Any preferences or concerns..."
+                          class="w-full border border-gray-200 rounded-xl p-3 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sage/40 mb-4 resize-none"></textarea>
+
+                <button type="submit"
+                        class="w-full bg-sage hover:bg-sage-dark text-white text-sm font-semibold py-3 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2">
+                    <svg id="book-spinner" class="htmx-indicator w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    Request Appointment
+                </button>
+            </form>
+
+            <div id="booking-result" class="mt-3 text-sm"></div>
+        </div>
+
+        <div id="prescriptions-card" class="card-anim bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                <h2 class="font-serif text-xl text-forest">Active Prescriptions</h2>
+                <button onclick="openPrescriptionsPanel()"
+                        class="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center text-green-600 text-sm hover:bg-green-100 transition-colors"
+                        title="View prescription actions">+</button>
+            </div>
+
+            <div class="space-y-4 max-h-52 overflow-y-auto custom-scroll" id="prescription-list">
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 prescription-item">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-semibold text-forest text-sm medicine-name">Triphala Churna</span>
+                        <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">Active</span>
+                    </div>
+                    <div class="text-xs text-gray-500 space-y-1">
+                        <p><span class="font-medium text-gray-600">Dose:</span> <span class="dose">1 tsp with warm water</span></p>
+                        <p><span class="font-medium text-gray-600">Frequency:</span> <span class="frequency">Nightly before sleep</span></p>
+                        <p><span class="font-medium text-gray-600">Anupana:</span> <span class="anupana">Warm water</span></p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 prescription-item">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-semibold text-forest text-sm medicine-name">Brahmi Ghrita</span>
+                        <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">Active</span>
+                    </div>
+                    <div class="text-xs text-gray-500 space-y-1">
+                        <p><span class="font-medium text-gray-600">Dose:</span> <span class="dose">2 tablets</span></p>
+                        <p><span class="font-medium text-gray-600">Frequency:</span> <span class="frequency">Twice daily after food</span></p>
+                        <p><span class="font-medium text-gray-600">Anupana:</span> <span class="anupana">Warm milk</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-gray-100">
+                <p class="text-xs text-terra font-semibold">
+                    Next follow-up: <span class="text-gray-600 font-normal">March 25th, 2026</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="card-anim bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                <h2 class="font-serif text-xl text-forest">Daily Dinacharya</h2>
+                <span class="w-8 h-8 bg-amber-50 rounded-full flex items-center justify-center text-amber-600 text-sm">☀</span>
+            </div>
+
+            <div class="tip-border bg-amber-50/50 pl-4 py-3 pr-3 rounded-r-xl mb-4">
+                <p class="text-sm text-gray-700 italic leading-relaxed">
+                    "Start your morning with copper-charged water and gentle Surya Namaskar
+                    to balance your inner Agni and kindle digestive fire."
+                </p>
+            </div>
+
+            <p class="text-xs text-gray-400 mb-4">
+                Personalised for your
+                <span class="font-semibold text-terra" th:text="${patient.primaryDosha ?: 'Pitta'}">Pitta</span>
+                profile · Updated daily
+            </p>
+
+            <button onclick="refreshTip()"
+                    class="w-full border border-gray-200 hover:border-sage hover:text-sage text-gray-500 text-sm font-medium py-2.5 rounded-xl transition-colors duration-200">
+                New Tip
+            </button>
+        </div>
+
+        <div id="doctor-card" class="card-anim bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                <h2 class="font-serif text-xl text-forest">Session History</h2>
+                <span class="w-8 h-8 bg-purple-50 rounded-full flex items-center justify-center text-purple-500 text-sm">⏱</span>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex items-center justify-between py-2 border-b border-gray-50">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Shirodhara</p>
+                        <p class="text-xs text-gray-400">Mar 10, 2026 · Dr. Ayurveda</p>
+                    </div>
+                    <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">Completed</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-gray-50">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Abhyanga</p>
+                        <p class="text-xs text-gray-400">Feb 22, 2026 · Dr. Ayurveda</p>
+                    </div>
+                    <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">Completed</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Nasya</p>
+                        <p class="text-xs text-gray-400">Jan 15, 2026 · Dr. Ayurveda</p>
+                    </div>
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">Reviewed</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="quick-actions-card" class="card-anim bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                <h2 class="font-serif text-xl text-forest">Quick Actions</h2>
+                <span class="w-8 h-8 bg-sage/10 rounded-full flex items-center justify-center text-sage text-sm">⚡</span>
+            </div>
+
+            <div class="space-y-3">
+                <button onclick="messageDoctor()"
+                        class="w-full text-left flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-sage/40 hover:bg-sage/5 transition-all duration-200 group">
+                    <span class="w-8 h-8 bg-sage/10 rounded-lg flex items-center justify-center text-sage group-hover:bg-sage group-hover:text-white transition-colors duration-200 text-sm shrink-0">✉</span>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Message Doctor</p>
+                        <p class="text-xs text-gray-400">Secure in-app messaging</p>
+                    </div>
+                </button>
+
+                <button onclick="downloadPrescription()"
+                        class="w-full text-left flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-terra/40 hover:bg-terra/5 transition-all duration-200 group">
+                    <span class="w-8 h-8 bg-terra/10 rounded-lg flex items-center justify-center text-terra group-hover:bg-terra group-hover:text-white transition-colors duration-200 text-sm shrink-0">↓</span>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Download Prescription</p>
+                        <p class="text-xs text-gray-400">Export as PDF</p>
+                    </div>
+                </button>
+
+                <button onclick="contactCoordinator()"
+                        class="w-full text-left flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-purple-300 hover:bg-purple-50/30 transition-all duration-200 group">
+                    <span class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-colors duration-200 text-sm shrink-0">☎</span>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Contact Coordinator</p>
+                        <p class="text-xs text-gray-400">Schedule or reschedule</p>
+                    </div>
+                </button>
+            </div>
         </div>
 
     </div>
 
+    <footer class="border-t border-gray-200 mt-6 py-8 px-8 text-center">
+        <p class="text-xs text-gray-400">
+            AyurSutra Wellness Platform · All health data is encrypted and private ·
+            <a href="#" class="text-sage hover:underline">Privacy Policy</a>
+        </p>
+    </footer>
+
+    <div id="quiz-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl card-anim">
+            <div class="text-center mb-6">
+                <span class="inline-block px-3 py-1 bg-sage/10 text-sage text-xs font-bold rounded-full mb-2 uppercase tracking-widest">Assessment</span>
+                <h2 class="font-serif text-3xl text-forest" id="quiz-question-title">Prakriti Quiz</h2>
+            </div>
+
+            <p id="quiz-question-text" class="text-gray-600 text-center mb-8 leading-relaxed">
+                Loading question...
+            </p>
+
+            <div id="quiz-options" class="flex flex-col gap-3"></div>
+
+            <button onclick="closeQuiz()" class="mt-6 w-full text-gray-400 text-xs hover:text-gray-600 transition-colors">
+                Cancel Assessment
+            </button>
+        </div>
+    </div>
+
     <script>
-        function runPrakritiQuiz() {
-            let step1 = confirm("Question 1: Do you have a small frame and find it hard to gain weight?");
-            let step2 = confirm("Question 2: Is your skin generally dry or prone to cracking in cold weather?");
-            
-            if (step1 && step2) {
-                alert("Assessment Complete: Your current traits strongly indicate a VATA constitution. Your dashboard will update shortly.");
+        function showToast(message, type = 'success') {
+            const colorMap = {
+                success: 'bg-green-700 text-white',
+                error:   'bg-red-700 text-white',
+                info:    'bg-forest text-white',
+                warning: 'bg-amber-600 text-white',
+            };
+            const iconMap = {
+                success: '✓',
+                error:   '✕',
+                info:    'ℹ',
+                warning: '⚠',
+            };
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            toast.className = [
+                'flex items-center gap-3 px-5 py-3 rounded-2xl shadow-lg',
+                'text-sm font-medium pointer-events-auto max-w-sm',
+                'transition-all duration-300 opacity-0 translate-y-4',
+                colorMap[type] || colorMap.success,
+            ].join(' ');
+
+            toast.innerHTML = `
+                <span class="shrink-0 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
+                    ${iconMap[type] || iconMap.success}
+                </span>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    toast.classList.remove('opacity-0', 'translate-y-4');
+                });
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 350);
+            }, 3500);
+        }
+
+        function highlightSection(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('section-highlight');
+            setTimeout(() => el.classList.remove('section-highlight'), 1800);
+        }
+
+        function goToDoctorSection() {
+            highlightSection('doctor-card');
+            showToast("Opening doctor section...", "info");
+        }
+
+        function goToAppointments() {
+            highlightSection('appointments-card');
+            showToast("Appointments section opened.", "info");
+        }
+
+        function openPrescriptionsPanel() {
+            highlightSection('prescriptions-card');
+            showToast("Prescription actions available below in Quick Actions.", "info");
+        }
+
+        function messageDoctor() {
+            const subject = encodeURIComponent("AyurSutra Patient Message");
+            const body = encodeURIComponent("Hello Doctor,\n\nI would like to discuss my treatment / prescription.\n\nRegards.");
+            window.location.href = `mailto:doctor@ayursutra.com?subject=${subject}&body=${body}`;
+        }
+
+        function contactCoordinator() {
+            showToast("Opening coordinator contact options...", "info");
+            setTimeout(() => {
+                window.location.href = "tel:+919999999999";
+            }, 700);
+        }
+
+        function downloadPrescription() {
+            const patientName = document.querySelector('h1')?.textContent.replace('Namaste, ', '') || 'Patient';
+            const medicines = [...document.querySelectorAll('.prescription-item')].map(item => {
+                const name = item.querySelector('.medicine-name')?.textContent || '';
+                const dose = item.querySelector('.dose')?.textContent || '';
+                const frequency = item.querySelector('.frequency')?.textContent || '';
+                const anupana = item.querySelector('.anupana')?.textContent || '';
+                return { name, dose, frequency, anupana };
+            });
+
+            let rows = medicines.map((m, i) => `
+                <tr>
+                    <td style="padding:8px;border:1px solid #ccc;">${i + 1}</td>
+                    <td style="padding:8px;border:1px solid #ccc;">${m.name}</td>
+                    <td style="padding:8px;border:1px solid #ccc;">${m.dose}</td>
+                    <td style="padding:8px;border:1px solid #ccc;">${m.frequency}</td>
+                    <td style="padding:8px;border:1px solid #ccc;">${m.anupana}</td>
+                </tr>
+            `).join('');
+
+            const html = `
+                <html>
+                <head>
+                    <title>Prescription</title>
+                </head>
+                <body style="font-family: Arial, sans-serif; padding: 24px;">
+                    <h1>AyurSutra Prescription</h1>
+                    <p><strong>Patient:</strong> ${patientName}</p>
+                    <p><strong>Doctor:</strong> Dr. Ayurveda</p>
+                    <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    <table style="width:100%; border-collapse:collapse; margin-top:20px;">
+                        <thead>
+                            <tr>
+                                <th style="padding:8px;border:1px solid #ccc;">#</th>
+                                <th style="padding:8px;border:1px solid #ccc;">Medicine</th>
+                                <th style="padding:8px;border:1px solid #ccc;">Dose</th>
+                                <th style="padding:8px;border:1px solid #ccc;">Frequency</th>
+                                <th style="padding:8px;border:1px solid #ccc;">Anupana</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const win = window.open('', '_blank');
+            win.document.open();
+            win.document.write(html);
+            win.document.close();
+            win.focus();
+            win.print();
+        }
+
+        let currentStep = 0;
+        let currentPatientId = null;
+        let vataScore = 0;
+        let pittaScore = 0;
+        let kaphaScore = 0;
+
+        const quizData = [
+            {
+                q: "What is your body frame usually like?",
+                options: [
+                    { text: "Thin, light, hard to gain weight", dosha: "VATA" },
+                    { text: "Medium, warm body, moderate build", dosha: "PITTA" },
+                    { text: "Broad, sturdy, gains weight easily", dosha: "KAPHA" }
+                ]
+            },
+            {
+                q: "How is your skin usually?",
+                options: [
+                    { text: "Dry, rough, cool", dosha: "VATA" },
+                    { text: "Warm, sensitive, reddish", dosha: "PITTA" },
+                    { text: "Soft, smooth, oily", dosha: "KAPHA" }
+                ]
+            },
+            {
+                q: "How is your appetite and digestion?",
+                options: [
+                    { text: "Irregular, sometimes strong sometimes weak", dosha: "VATA" },
+                    { text: "Strong, sharp hunger, fast digestion", dosha: "PITTA" },
+                    { text: "Slow, heavy digestion, low hunger", dosha: "KAPHA" }
+                ]
+            },
+            {
+                q: "How do you usually react mentally?",
+                options: [
+                    { text: "Restless, anxious, overthinking", dosha: "VATA" },
+                    { text: "Focused, intense, easily irritated", dosha: "PITTA" },
+                    { text: "Calm, steady, sometimes sluggish", dosha: "KAPHA" }
+                ]
+            },
+            {
+                q: "How is your sleep usually?",
+                options: [
+                    { text: "Light, broken, disturbed", dosha: "VATA" },
+                    { text: "Moderate, but affected by stress/heat", dosha: "PITTA" },
+                    { text: "Deep, long, heavy", dosha: "KAPHA" }
+                ]
+            }
+        ];
+
+        function runPrakritiQuiz(patientId) {
+            currentPatientId = patientId;
+            currentStep = 0;
+            vataScore = 0;
+            pittaScore = 0;
+            kaphaScore = 0;
+
+            document.getElementById('quiz-modal').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = quizData[currentStep];
+            document.getElementById('quiz-question-title').textContent = `Question ${currentStep + 1}`;
+            document.getElementById('quiz-question-text').textContent = question.q;
+
+            const optionsBox = document.getElementById('quiz-options');
+            optionsBox.innerHTML = "";
+
+            question.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.type = "button";
+                btn.className = "w-full text-left px-4 py-3 rounded-2xl border border-gray-200 text-gray-700 hover:bg-sage/10 hover:border-sage transition-all";
+                btn.textContent = option.text;
+                btn.onclick = () => handleQuizAnswer(option.dosha);
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        function handleQuizAnswer(dosha) {
+            if (dosha === "VATA") vataScore++;
+            if (dosha === "PITTA") pittaScore++;
+            if (dosha === "KAPHA") kaphaScore++;
+
+            currentStep++;
+
+            if (currentStep < quizData.length) {
+                showQuestion();
             } else {
-                alert("Assessment Complete: Your traits indicate a PITTA-KAPHA balance. Consult your practitioner for a full diet chart.");
+                saveQuizResult();
             }
         }
 
-        function handleBooking(e) {
-            e.preventDefault();
-            alert("Success! Your therapy request has been logged. Our coordinator will contact you to confirm the time slot.");
+        function closeQuiz() {
+            document.getElementById('quiz-modal').classList.add('hidden');
         }
-    </script>
 
+        async function saveQuizResult() {
+            let primaryDosha = "Vata";
+            let agniStrength = "Vishama (Variable)";
+            let prakriti = "Vata";
+
+            const scores = [
+                { name: "Vata", score: vataScore },
+                { name: "Pitta", score: pittaScore },
+                { name: "Kapha", score: kaphaScore }
+            ].sort((a, b) => b.score - a.score);
+
+            primaryDosha = scores[0].name;
+
+            if (primaryDosha === "Pitta") {
+                agniStrength = "Tikshna (High)";
+            } else if (primaryDosha === "Kapha") {
+                agniStrength = "Manda (Low)";
+            } else {
+                agniStrength = "Vishama (Variable)";
+            }
+
+            if (scores[0].score === scores[1].score) {
+                prakriti = `${scores[0].name}-${scores[1].name}`;
+            } else {
+                prakriti = scores[0].name;
+            }
+
+            try {
+                const params = new URLSearchParams();
+                params.append("primaryDosha", primaryDosha);
+                params.append("agniStrength", agniStrength);
+                params.append("prakriti", prakriti);
+
+                const response = await fetch(`/api/clients/${currentPatientId}/update-prakriti`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: params.toString()
+                });
+
+                if (response.ok) {
+                    closeQuiz();
+                    showToast(`Assessment complete! ${primaryDosha} detected.`, "success");
+                    setTimeout(() => window.location.reload(), 1200);
+                } else {
+                    closeQuiz();
+                    showToast("Could not save prakriti result.", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                closeQuiz();
+                showToast("Error while saving quiz result.", "error");
+            }
+        }
+
+        const tips = [
+            "Start your morning with copper-charged water and gentle Surya Namaskar to kindle digestive fire.",
+            "Oil pulling with sesame oil for 10 minutes each morning supports oral health and Kapha balance.",
+            "Apply warm sesame oil to your feet before bed to calm Vata and promote deep, restful sleep.",
+            "Practice Nadi Shodhana (alternate nostril breathing) for 5 minutes to balance Pitta energy.",
+            "Eat your largest meal at midday when Agni (digestive fire) is naturally at its peak."
+        ];
+
+        let tipIndex = 0;
+        function refreshTip() {
+            tipIndex = (tipIndex + 1) % tips.length;
+            const tipBox = document.querySelector('.tip-border p');
+            if (tipBox) {
+                tipBox.style.opacity = '0';
+                setTimeout(() => {
+                    tipBox.textContent = `"${tips[tipIndex]}"`;
+                    tipBox.style.opacity = '1';
+                }, 200);
+                tipBox.style.transition = 'opacity 0.2s ease';
+            }
+            showToast('New Dinacharya tip loaded!', 'success');
+        }
+
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            if (evt.detail.pathInfo && evt.detail.pathInfo.requestPath === '/api/appointments/book') {
+                if (evt.detail.successful) {
+                    showToast('Appointment request sent! We will confirm shortly.', 'success');
+                } else {
+                    showToast('Could not send request. Please try again.', 'error');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

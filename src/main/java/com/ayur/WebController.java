@@ -1,9 +1,13 @@
+//WebController.java
 package com.ayur;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam; // Add this
+import java.util.List; // Add this - Fixes the red error on List
+import java.util.Optional;
 
 @Controller
 public class WebController {
@@ -14,6 +18,9 @@ public class WebController {
     @Autowired
     private AppointmentRepository appointmentRepository; 
 
+    @Autowired
+    private PrescriptionRepository prescriptionRepository;
+    
     @GetMapping("/")
     public String home() {
         return "redirect:/login";
@@ -30,17 +37,15 @@ public class WebController {
     }
 
     @GetMapping("/patient-dashboard")
-    public String showPatientDashboard(Model model) {
-        Client patient = clientRepository.findAll().stream()
-                            .filter(c -> "PATIENT".equalsIgnoreCase(c.getRole()))
-                            .findFirst()
-                            .orElse(null);
-
-        if (patient == null) {
-            patient = new Client();
-            patient.setName("Valued Patient");
-            patient.setPrimaryDosha("Pitta");
-        }
+    public String showPatientDashboard(@RequestParam(required = false) String username, Model model) {
+        Client patient = clientRepository.findByUsername(username != null ? username : "patient")
+                .orElseGet(() -> clientRepository.findByRole("PATIENT").stream().findFirst()
+                .orElseGet(() -> {
+                    Client guest = new Client();
+                    guest.setName("Guest");
+                    guest.setPrimaryDosha("Pitta");
+                    return guest;
+                }));
 
         model.addAttribute("patient", patient);
         return "patient";
@@ -48,17 +53,30 @@ public class WebController {
 
     @GetMapping("/admin-dashboard")
     public String showAdminDashboard(Model model) {
-        long pCount = clientRepository.count();
-        long aCount = appointmentRepository.count();
-        
-        model.addAttribute("patientCount", pCount);
-        model.addAttribute("appointmentCount", aCount);
-        
+        model.addAttribute("patientCount", clientRepository.count());
+        model.addAttribute("appointmentCount", appointmentRepository.count());
         return "admin";
     }
-
     @GetMapping("/doctor-dashboard")
-    public String showDoctorDashboard(Model model) {
+    public String showDoctorDashboard(@RequestParam(required = false) Long selectedPatientId, Model model) {
+        List<Client> patients = clientRepository.findByRole("PATIENT");
+        model.addAttribute("patients", patients);
+
+        Client activePatient = null;
+
+        if (selectedPatientId != null) {
+            activePatient = clientRepository.findById(selectedPatientId).orElse(null);
+        } else if (!patients.isEmpty()) {
+            activePatient = patients.get(0); // auto-select first registered patient
+        }
+
+        if (activePatient != null) {
+            model.addAttribute("activePatient", activePatient);
+            model.addAttribute("history", prescriptionRepository.findByPatientId(activePatient.getId()));
+        } else {
+            model.addAttribute("history", java.util.Collections.emptyList());
+        }
+
         return "doctor";
     }
 }
